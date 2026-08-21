@@ -1,12 +1,12 @@
 ---
 layout: page
 permalink: /repositories/
-title: repositories
-description: Code I have worked
+title: Repositories
+# description: Code I have worked
 nav: true
 nav_order: 2
 ---
-
+<!-- 
 {% if site.data.repositories.github_users %}
 
 ## GitHub users
@@ -35,9 +35,9 @@ nav_order: 2
 {% endif %}
 {% endif %}
 
-{% if site.data.repositories.github_repos %}
+{% if site.data.repositories.github_repos %} -->
 
-## GitHub Repositories
+<!-- ## GitHub Repositories -->
 
 <div class="repositories d-flex flex-wrap flex-md-row flex-column justify-content-between align-items-center">
   {% for repo in site.data.repositories.github_repos %}
