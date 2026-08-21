@@ -1,7 +1,7 @@
 ---
 layout: page
 permalink: /resources/
-title: Resources
+title: resources
 description: Curated links to pages and materials, grouped by topic.
 nav: true
 nav_order: 3
