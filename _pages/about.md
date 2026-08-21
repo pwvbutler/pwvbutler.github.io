@@ -2,7 +2,7 @@
 layout: about
 title: about
 permalink: /
-subtitle: Computational Chemist #<a href='#'>Affiliations</a>. Address. Contacts. Motto. Etc.
+# subtitle: Computational Chemist #<a href='#'>Affiliations</a>. Address. Contacts. Motto. Etc.
 
 profile:
   align: right
@@ -27,4 +27,4 @@ latest_posts:
   limit: 3 # leave blank to include all the blog posts
 ---
 
-Computational chemist experienced in molecular modelling and machine learning methods. Strong interdisciplinary interest with a background in organic chemistry, crystallography, and computer science.
+Computational chemist experienced in molecular modelling, structure prediction, and machine learning methods. Strong interdisciplinary interest with a background in organic synthesis, crystallography, and computer science.
