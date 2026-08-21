@@ -1,4 +1,4 @@
 User-agent: *
 Disallow:
 
-Sitemap: https://pwvbutler.github.io/sitemap.xml
+Sitemap: https://pwvbutler.github.io/al-folio/sitemap.xml
