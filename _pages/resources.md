@@ -2,7 +2,7 @@
 layout: page
 permalink: /resources/
 title: resources
-description: During my studies I have created summaries of various topics. Below I have organised these into resources that hopefully may be useful to others.
+description: Here I have organised notes on various topics so that hopefully they may be useful to others #. During my studies I have created summaries of various topics. Below I have organised these into resources that hopefully may be useful to others.
 nav: true
 nav_order: 3
 ---
