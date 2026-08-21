@@ -2,7 +2,7 @@
 layout: page
 permalink: /resources/
 title: resources
-description: Curated links to pages and materials, grouped by topic.
+description: During my studies I have created summaries of various topics. Below I have organised these into resources that hopefully may be useful to others.
 nav: true
 nav_order: 3
 ---
