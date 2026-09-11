@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Atomic Orbitals to Band Gaps — Computational Chemistry</title>
+<meta name="description" content="Building the connection between the modelling of a discrete molecule and that of a periodic crystal, starting from quantum mechanics and phase overlap.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,300;1,6..72,400&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F4F6F3;
+    --ink:#161B29;
+    --ink-soft:#555E72;
+    --rule:#D6DAD4;
+    --pos:#17756C;          /* wavefunction: positive phase */
+    --neg:#AE3355;          /* wavefunction: negative phase */
+    --pos-wash:rgba(23,117,108,.14);
+    --neg-wash:rgba(174,51,85,.12);
+    --measure:38rem;
+    --wide:54rem;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --paper:#12151C;
+      --ink:#E6E9E4;
+      --ink-soft:#9BA3B2;
+      --rule:#2C323C;
+      --pos:#4FBFAF;
+      --neg:#E9748F;
+      --pos-wash:rgba(79,191,175,.16);
+      --neg-wash:rgba(233,116,143,.14);
+    }
+  }
+
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:"Newsreader",Georgia,"Times New Roman",serif;
+    font-size:1.125rem;
+    line-height:1.72;
+    font-weight:300;
+    text-rendering:optimizeLegibility;
+  }
+
+  article{
+    display:grid;
+    grid-template-columns:1fr min(var(--measure),calc(100% - 2.5rem)) 1fr;
+    padding:0 0 6rem;
+  }
+  article > *{grid-column:2}
+
+  /* ---------- masthead ---------- */
+  header{padding:clamp(3rem,9vw,6.5rem) 0 0}
+  .kicker{
+    font-style:italic;
+    font-size:1rem;
+    color:var(--ink-soft);
+    margin:0 0 .9rem;
+  }
+  h1{
+    font-weight:500;
+    font-size:clamp(2.3rem,7vw,3.6rem);
+    line-height:1.04;
+    letter-spacing:-.022em;
+    margin:0 0 1.6rem;
+    max-width:14ch;
+  }
+  .lede{
+    font-size:1.28rem;
+    line-height:1.6;
+    color:var(--ink-soft);
+    margin:0 0 2.6rem;
+    padding-left:1.1rem;
+    border-left:2px solid var(--pos);
+  }
+
+  /* ---------- text ---------- */
+  h2{
+    font-weight:500;
+    font-size:1.75rem;
+    letter-spacing:-.012em;
+    line-height:1.2;
+    margin:3.4rem 0 1.1rem;
+  }
+  h2::after{
+    content:"";
+    display:block;
+    width:2.4rem;
+    height:1px;
+    background:var(--pos);
+    margin-top:.7rem;
+  }
+  p{margin:0 0 1.35rem}
+
+  /* ---------- equations ---------- */
+  .eq{
+    margin:1.9rem 0 2rem;
+    padding:.35rem 0 .35rem 1.25rem;
+    border-left:2px solid var(--rule);
+    overflow-x:auto;
+    overflow-y:hidden;
+  }
+  math{
+    font-family:"Newsreader",Georgia,"Times New Roman",serif;
+    color:var(--ink);
+    text-align:left;
+  }
+  math[display="block"]{
+    margin:0;
+    font-size:1.42rem;
+  }
+  .eq-note{
+    display:block;
+    font-family:"IBM Plex Sans",system-ui,sans-serif;
+    font-size:.78rem;
+    color:var(--ink-soft);
+    margin-top:.85rem;
+  }
+
+  /* ---------- figures ---------- */
+  figure{
+    grid-column:1/-1;
+    justify-self:center;
+    width:min(var(--wide),calc(100% - 2.5rem));
+    margin:3.1rem 0 3.3rem;
+  }
+  figure svg{
+    display:block;
+    width:100%;
+    height:auto;
+    overflow:visible;
+  }
+
+  /* svg typography + strokes */
+  .lbl{font-family:"IBM Plex Sans",system-ui,sans-serif;font-size:12px;fill:var(--ink-soft)}
+  .lbl-strong{font-family:"IBM Plex Sans",system-ui,sans-serif;font-size:13px;font-weight:600;fill:var(--ink)}
+  .lbl-pos{fill:var(--pos)}
+  .lbl-neg{fill:var(--neg)}
+  .axis{stroke:var(--ink-soft);stroke-width:1;fill:none}
+  .hair{stroke:var(--rule);stroke-width:1;fill:none}
+  .lvl{stroke:var(--ink);stroke-width:2;fill:none;stroke-linecap:round}
+  .curve-pos{stroke:var(--pos);stroke-width:2;fill:none}
+  .curve-neg{stroke:var(--neg);stroke-width:2;fill:none;stroke-dasharray:5 4}
+  .fill-pos{fill:var(--pos-wash)}
+  .fill-neg{fill:var(--neg-wash)}
+  .lobe-pos{fill:var(--pos-wash);stroke:var(--pos);stroke-width:1.5}
+  .lobe-neg{fill:var(--neg-wash);stroke:var(--neg);stroke-width:1.5}
+  .node{stroke:var(--neg);stroke-width:1.5;stroke-dasharray:4 4;fill:none}
+  .arrow{stroke:var(--ink);stroke-width:1.5;fill:none}
+
+  footer{
+    grid-column:2;
+    margin-top:4rem;
+    padding-top:1.4rem;
+    border-top:1px solid var(--rule);
+    font-family:"IBM Plex Sans",system-ui,sans-serif;
+    font-size:.82rem;
+    color:var(--ink-soft);
+  }
+  a{color:var(--pos)}
+  :focus-visible{outline:2px solid var(--pos);outline-offset:3px}
+
+  @media (max-width:36rem){
+    body{font-size:1.06rem}
+    .lede{font-size:1.14rem}
+    math[display="block"]{font-size:1.2rem}
+  }
+</style>
+</head>
+<body>
+<article>
+
+  <header>
+    <p class="kicker">Computational chemistry</p>
+    <h1>Atomic Orbitals to Band Gaps</h1>
+  </header>
+
+
+  <figure>
+    <svg viewBox="0 0 900 320" role="img" aria-label="Discrete atomic energy levels splitting through molecule and chain into continuous bands separated by a band gap">
+      <path class="axis" d="M28 290 L28 34"/>
+      <path class="axis" d="M28 34 l-5 9 M28 34 l5 9"/>
+      <text class="lbl" x="12" y="160" transform="rotate(-90 12 160)" text-anchor="middle">Energy</text>
+
+      <g>
+        <path class="lvl" d="M70 232 H150"/>
+        <path class="lvl" d="M70 118 H150"/>
+        <text class="lbl-strong" x="110" y="308" text-anchor="middle">atom</text>
+      </g>
+
+      <g>
+        <path class="hair" d="M150 232 L250 212 M150 232 L250 252 M150 118 L250 98 M150 118 L250 138"/>
+        <path class="lvl" d="M250 212 H330 M250 252 H330 M250 98 H330 M250 138 H330"/>
+        <text class="lbl-strong" x="290" y="308" text-anchor="middle">molecule</text>
+      </g>
+
+      <g>
+        <path class="hair" d="M330 212 L430 196 M330 212 L430 206 M330 212 L430 216 M330 252 L430 230 M330 252 L430 242 M330 252 L430 254 M330 98 L430 82 M330 98 L430 92 M330 98 L430 102 M330 138 L430 116 M330 138 L430 128 M330 138 L430 140"/>
+        <path class="lvl" d="M430 196 H510 M430 206 H510 M430 216 H510 M430 230 H510 M430 242 H510 M430 254 H510 M430 82 H510 M430 92 H510 M430 102 H510 M430 116 H510 M430 128 H510 M430 140 H510"/>
+        <text class="lbl-strong" x="470" y="308" text-anchor="middle">chain</text>
+      </g>
+
+      <path class="hair" d="M510 196 L610 190 M510 254 L610 262 M510 82 L610 76 M510 140 L610 148"/>
+
+      <g>
+        <rect class="fill-pos" x="610" y="190" width="230" height="72" rx="3"/>
+        <rect x="610" y="190" width="230" height="72" rx="3" fill="none" stroke="var(--pos)" stroke-width="1.5"/>
+        <rect x="610" y="76" width="230" height="72" rx="3" fill="none" stroke="var(--ink-soft)" stroke-width="1.5" stroke-dasharray="6 4"/>
+        <text class="lbl-strong" x="725" y="308" text-anchor="middle">crystal</text>
+        <text class="lbl lbl-pos" x="725" y="232" text-anchor="middle" style="font-weight:600">occupied band</text>
+        <text class="lbl" x="725" y="118" text-anchor="middle" style="font-weight:600">unoccupied band</text>
+        <path class="arrow" d="M868 148 L868 190" stroke="var(--neg)"/>
+        <path class="arrow" d="M868 148 l-4 8 M868 148 l4 8 M868 190 l-4 -8 M868 190 l4 -8" stroke="var(--neg)"/>
+        <text class="lbl lbl-neg" x="878" y="173" style="font-weight:600">band gap</text>
+      </g>
+    </svg>
+  </figure>
+
+  <p class="lede">Starting from the intuitions of quantum mechanics and phase overlap, this article aims to build the connection between the modelling of a discrete molecule and that of a periodic crystal.</p>
+
+  <!-- ============ CLASSICAL ============ -->
+  <h2>Classical Mechanics</h2>
+
+  <p>In classical mechanics we assume a particle can be described with a precise position and momentum. For example</p>
+
+  <div class="eq">
+    <math display="block">
+      <mi>x</mi><mo>=</mo><msub><mi>x</mi><mn>0</mn></msub><mo>+</mo><mi>v</mi><mo>&#8290;</mo><mi>t</mi>
+    </math>
+  </div>
+
+  <p>And</p>
+
+  <div class="eq">
+    <math display="block">
+      <mi>p</mi><mo>=</mo><mi>m</mi><mo>&#8290;</mo><mi>v</mi>
+    </math>
+  </div>
+
+  <p>The total energy of a classical particle is defined as the sum of the kinetic and potential energies, called the Hamiltonian, <em>H</em>:</p>
+
+  <div class="eq">
+    <math display="block">
+      <mi>H</mi><mo>=</mo>
+      <mfrac><msup><mi>p</mi><mn>2</mn></msup><mrow><mn>2</mn><mo>&#8290;</mo><mi>m</mi></mrow></mfrac>
+      <mo>+</mo><mi>V</mi><mo stretchy="false">(</mo><mi>r</mi><mo stretchy="false">)</mo>
+    </math>
+  </div>
+
+  <!-- ============ QUANTUM ============ -->
+  <h2>Quantum Mechanics</h2>
+
+  <p>The foundation of quantum mechanics, by contrast, is that we cannot know the position and momentum with infinite precision, and instead they are described by probability distributions. Hence, instead of talking about where a particle is we talk about what is the probability of finding the particle at a given position.</p>
+
+  <p>Additionally, we know from observations that particles have wave-like behaviour (the particle undergoes interference like waves combining in a bathtub, see the double slit experiment). This motivates describing the particle by a wave function, a complex value function with an amplitude and phase. The position probability distribution is obtained from the square modulus of the wave function.</p>
+
+  <div class="eq">
+    <math display="block">
+      <mi>p</mi><mo stretchy="false">(</mo><mi>x</mi><mo stretchy="false">)</mo><mo>=</mo>
+      <msup>
+        <mrow><mo stretchy="false">|</mo><mi>&#968;</mi><mo stretchy="false">(</mo><mi>x</mi><mo stretchy="false">)</mo><mo stretchy="false">|</mo></mrow>
+        <mn>2</mn>
+      </msup>
+    </math>
+  </div>
+
+  <!-- <figure>
+    <svg viewBox="0 0 900 300" role="img" aria-label="A complex wave function with real and imaginary parts, and the probability density obtained from its square modulus">
+      <path class="hair" d="M60 90 H880"/>
+      <path class="curve-pos" transform="translate(40,0) scale(1.85,1)" d="M40 90 Q55 84 70 90 Q85 102 100 90 Q115 70 130 90 Q145 122 160 90 Q175 46 190 90 Q205 145 220 90 Q235 28 250 90 Q265 152 280 90 Q295 35 310 90 Q325 134 340 90 Q355 58 370 90 Q385 110 400 90 Q415 78 430 90 Q445 96 460 90"/>
+      <path class="curve-neg" transform="translate(40,0) scale(1.85,1)" d="M40 90 Q47 96 55 90 Q62 78 70 90 Q77 110 85 90 Q92 134 100 90 Q107 58 115 90 Q122 152 130 90 Q137 35 145 90 Q152 145 160 90 Q167 28 175 90 Q182 152 190 90 Q197 35 205 90 Q212 145 220 90 Q227 28 235 90 Q242 152 250 90 Q257 35 265 90 Q272 134 280 90 Q287 58 295 90 Q302 110 310 90 Q317 78 325 90 Q332 96 340 90 Q347 90 355 90 Q362 90 370 90 Q385 90 400 90 Q430 90 460 90"/>
+      <text class="lbl lbl-pos" x="700" y="34" style="font-weight:600">Re &#968;(x)</text>
+      <text class="lbl lbl-neg" x="700" y="52" style="font-weight:600">Im &#968;(x)</text>
+
+      <path class="hair" d="M60 268 H880"/>
+      <path class="fill-pos" d="M170 268 C 330 268, 380 176, 470 176 C 560 176, 610 268, 770 268 Z"/>
+      <path class="curve-pos" d="M170 268 C 330 268, 380 176, 470 176 C 560 176, 610 268, 770 268"/>
+      <text class="lbl lbl-pos" x="700" y="212" style="font-weight:600">|&#968;(x)|&#178;</text>
+      <text class="lbl" x="60" y="292">x</text>
+    </svg>
+  </figure> -->
+
+  <p>Other properties are extracted by applying operators to the wave function. For example, the momentum operator</p>
+
+  <div class="eq">
+    <math display="block">
+      <mover><mi>p</mi><mo>&#94;</mo></mover><mo>=</mo>
+      <mo>&#8722;</mo><mi>i</mi><mo>&#8290;</mo><mi>&#8463;</mi><mo>&#8290;</mo><mo>&#8711;</mo>
+    </math>
+  </div>
+
+  <p>And the Hamiltonian operator:</p>
+
+  <div class="eq">
+    <math display="block">
+      <mi>H</mi><mo>=</mo><mo>&#8722;</mo>
+      <mfrac><msup><mi>&#8463;</mi><mn>2</mn></msup><mrow><mn>2</mn><mo>&#8290;</mo><mi>m</mi></mrow></mfrac>
+      <msup><mo>&#8711;</mo><mn>2</mn></msup>
+      <mo>+</mo><mi>V</mi><mo stretchy="false">(</mo><mi>r</mi><mo stretchy="false">)</mo>
+    </math>
+  </div>
+
+  <p>A consequence of the properties being entwined in the wave function is that certain properties are correlated, an example being position and momentum, and the more precisely we know one property the less precisely we can know about the other. In terms of the probability distributions, if reduce the width of the distribution of one property, the other must broaden. This is Heisenberg's uncertainty principle.</p>
+
+  <figure>
+    <svg viewBox="0 0 900 240" role="img" aria-label="Narrow position distribution paired with a broad momentum distribution">
+      <g>
+        <path class="hair" d="M50 150 H400"/>
+        <path class="fill-pos" d="M170 150 C 196 150, 190 62, 225 62 C 260 62, 254 150, 280 150 Z"/>
+        <path class="curve-pos" d="M170 150 C 196 150, 190 62, 225 62 C 260 62, 254 150, 280 150"/>
+        <text class="lbl lbl-pos" x="225" y="176" text-anchor="middle" style="font-weight:600">position</text>
+        <text class="lbl" x="225" y="196" text-anchor="middle">known sharply</text>
+      </g>
+      <g>
+        <path class="hair" d="M500 150 H860"/>
+        <path class="fill-neg" d="M540 150 C 620 150, 600 100, 680 100 C 760 100, 740 150, 820 150 Z"/>
+        <path d="M540 150 C 620 150, 600 100, 680 100 C 760 100, 740 150, 820 150" fill="none" stroke="var(--neg)" stroke-width="2"/>
+        <text class="lbl lbl-neg" x="680" y="176" text-anchor="middle" style="font-weight:600">momentum</text>
+        <text class="lbl" x="680" y="196" text-anchor="middle">spread wide</text>
+      </g>
+      <path class="arrow" d="M412 112 L488 112" stroke="var(--ink-soft)"/>
+      <path class="arrow" d="M488 112 l-9 -4 M488 112 l-9 4 M412 112 l9 -4 M412 112 l9 4" stroke="var(--ink-soft)"/>
+      <text class="lbl" x="450" y="100" text-anchor="middle">&#916;x &#916;p &#8805; &#8463;/2</text>
+    </svg>
+  </figure>
+
+  <p>To emphasise, all of this derives from assuming the wave-like nature of particles and behaviour like the uncertainty principle are consequences of the math that captures this perspective. However, it is important to keep in mind this behaviour has been experimentally demonstrated.</p>
+
+  <p>Finally, we come to Schrödinger's wave equation. The importance of this equation is that it tells us how to identify valid wave functions of a particle. Simply they must satisfy the equation which states the Hamiltonian operator applied to the wave function must be equal to multiplying the wave function by the energy.</p>
+
+  <div class="eq">
+    <math display="block">
+      <mi>H</mi><mo>&#8290;</mo><mi>&#968;</mi><mo>=</mo><mi>E</mi><mo>&#8290;</mo><mi>&#968;</mi>
+    </math>
+  </div>
+
+  <p>It can be helpful to think of the wavefunction as a vector and the Hamiltonian being a geometric transformation. The equation is valid for vectors where if apply the transformation the resulting vector is equal to scaling the original vector, making it shorter or longer.</p>
+
+  <p>Therefore, to calculate the energy of an atom we just need to use Schrödinger's equation to find the valid wavefunctions of the particles and sum up the energies. Moreover, we typically make the approximation that the nucleus is fixed during the calculation (called the Born-Oppenheimer approximation) and thus we only need to calculate the electronic energy (i.e. the total energy of the electrons).</p>
+
+  <p>The Electronic Hamiltonian has four terms: the electron kinetic energy, the electron-nuclei attraction, the electron-electron repulsion, and the nuclei repulsion (a constant)</p>
+
+  <div class="eq">
+    <math display="block">
+      <msub><mi>H</mi><mrow><mi>electronic</mi></mrow></msub>
+      <mo>=</mo>
+      <mo>&#8722;</mo>
+      <munder><mo>&#8721;</mo><mi>i</mi></munder>
+      <mfrac><mn>1</mn><mn>2</mn></mfrac>
+      <msubsup><mo>&#8711;</mo><mi>i</mi><mn>2</mn></msubsup>
+      <mo>&#8722;</mo>
+      <munder><mo>&#8721;</mo><mi>i</mi></munder>
+      <munder><mo>&#8721;</mo><mi>A</mi></munder>
+      <mfrac><msub><mi>Z</mi><mi>A</mi></msub><msub><mi>r</mi><mrow><mi>i</mi><mi>A</mi></mrow></msub></mfrac>
+      <mo>+</mo>
+      <munder><mo>&#8721;</mo><mrow><mi>i</mi><mo>&lt;</mo><mi>j</mi></mrow></munder>
+      <mfrac><mn>1</mn><msub><mi>r</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub></mfrac>
+      <mo>+</mo>
+      <munder><mo>&#8721;</mo><mrow><mi>A</mi><mo>&lt;</mo><mi>B</mi></mrow></munder>
+      <mfrac>
+        <mrow><msub><mi>Z</mi><mi>A</mi></msub><mo>&#8290;</mo><msub><mi>Z</mi><mi>B</mi></msub></mrow>
+        <msub><mi>R</mi><mrow><mi>A</mi><mi>B</mi></mrow></msub>
+      </mfrac>
+    </math>
+    <span class="eq-note">In atomic units, with <em>i</em>, <em>j</em> indexing electrons and <em>A</em>, <em>B</em> indexing nuclei of charge <em>Z</em>.</span>
+  </div>
+
+  <p>While the above form of the Schrödinger Equation appears relatively simple, it is far from trivial to solve and is not analytically solvable for systems with more than one electron (due to the many-body problem). Therefore, to solve the wave function the basic approach is to assume that the electrons exist in one electron orbitals (an orbital being a wavefunction only depending on the coordinates of one electron) and are non-interacting. The electron-electron interaction is partially included in an average way through a 'mean-field' that avoids the many-body problem, however, this is still an approximation.</p>
+
+  <p>So with this approach we can solve the atomic energy but how about for a molecule? For this we take the approach that the molecular orbitals are formed by linearly combining atomic orbitals from the atoms. The atomic orbitals are then a 'basis set' for approximating the molecular orbitals. In theory, we could use a basis set of any functions, however, we know the atomic orbitals already have features expected for electron orbitals, and so can give good results with relatively few atomic orbital functions.</p>
+
+  <p>Generally we are interested in the lowest energy solution for the molecular orbitals, called the ground state and for this we can apply the variational theorem to determine the coefficients. This theorem is that if we alter the coefficients of the combination and the energy is lower, then this solution is closer to the ground state. We can keep altering the coefficients until we can't lower the energy further at which point we are closest to the ground state (with the basis set).</p>
+
+  <p>One aspect we need to consider when combining orbitals is the wave-like nature and if the orbitals combine in phase, leading to constructive overlap (amplitudes add), or if combine out-of-phase, leading to destructive overlap (amplitudes subtract). The in-phase case leads to the electron delocalising across both atoms represented by the position probability being positive over the atoms, whereas the out-of-phase case leads to a 'node' (i.e. zero probability point).</p>
+
+  <figure>
+    <svg viewBox="0 0 900 400" role="img" aria-label="Two atomic orbitals combining in phase to give a bonding orbital and out of phase to give an antibonding orbital with a node, shown with the resulting energy level diagram">
+      <g>
+        <circle class="lobe-pos" cx="80" cy="96" r="34"/>
+        <circle class="lobe-pos" cx="196" cy="96" r="34"/>
+        <text class="lbl" x="138" y="101" text-anchor="middle" style="font-size:20px">+</text>
+        <path class="arrow" d="M246 96 L296 96" stroke="var(--ink-soft)"/>
+        <path class="arrow" d="M296 96 l-9 -4 M296 96 l-9 4" stroke="var(--ink-soft)"/>
+        <path class="lobe-pos" d="M330 96 C 330 52, 380 44, 424 44 C 468 44, 518 52, 518 96 C 518 140, 468 148, 424 148 C 380 148, 330 140, 330 96 Z"/>
+        <text class="lbl-strong" x="424" y="101" text-anchor="middle" fill="var(--pos)">no node</text>
+        <text class="lbl" x="424" y="180" text-anchor="middle">in phase &#183; amplitudes add &#183; electron delocalised over both atoms</text>
+      </g>
+
+      <g>
+        <circle class="lobe-pos" cx="80" cy="290" r="34"/>
+        <circle class="lobe-neg" cx="196" cy="290" r="34"/>
+        <text class="lbl" x="138" y="295" text-anchor="middle" style="font-size:20px">+</text>
+        <path class="arrow" d="M246 290 L296 290" stroke="var(--ink-soft)"/>
+        <path class="arrow" d="M296 290 l-9 -4 M296 290 l-9 4" stroke="var(--ink-soft)"/>
+        <path class="lobe-pos" d="M330 290 C 330 250, 366 240, 400 240 C 414 240, 420 262, 420 290 C 420 318, 414 340, 400 340 C 366 340, 330 330, 330 290 Z"/>
+        <path class="lobe-neg" d="M518 290 C 518 250, 482 240, 448 240 C 434 240, 428 262, 428 290 C 428 318, 434 340, 448 340 C 482 340, 518 330, 518 290 Z"/>
+        <path class="node" d="M424 226 L424 354"/>
+        <text class="lbl-strong" x="424" y="216" text-anchor="middle" fill="var(--neg)">node</text>
+        <text class="lbl" x="424" y="374" text-anchor="middle">out of phase &#183; amplitudes subtract &#183; zero probability at the node</text>
+      </g>
+
+      <g transform="translate(40,0)">
+        <path class="axis" d="M600 350 L600 40"/>
+        <path class="axis" d="M600 40 l-5 9 M600 40 l5 9"/>
+        <text class="lbl" x="584" y="195" transform="rotate(-90 584 195)" text-anchor="middle">Energy</text>
+        <path class="lvl" d="M624 195 H676"/>
+        <path class="lvl" d="M804 195 H856"/>
+        <path class="lvl" d="M714 290 H766" stroke="var(--pos)"/>
+        <path class="lvl" d="M714 100 H766" stroke="var(--neg)"/>
+        <path class="hair" d="M676 195 L714 290 M676 195 L714 100 M804 195 L766 290 M804 195 L766 100"/>
+        <text class="lbl" x="650" y="186" text-anchor="middle">AO</text>
+        <text class="lbl" x="830" y="186" text-anchor="middle">AO</text>
+        <text class="lbl lbl-pos" x="740" y="312" text-anchor="middle" style="font-weight:600">in phase</text>
+        <text class="lbl lbl-neg" x="740" y="92" text-anchor="middle" style="font-weight:600">out of phase</text>
+      </g>
+    </svg>
+  </figure>
+
+  <p>Remembering that the position and momentum are related by the uncertainty principle, electrons being more localised to a specific region means their momentum must increase, leading to higher kinetic energy. Therefore, nodes lead to higher energy states.</p>
+
+  <figure>
+    <svg viewBox="0 0 900 340" role="img" aria-label="A chain of orbitals shown at three k-points, with the number of nodes and the energy increasing together">
+      <path class="axis" d="M46 300 L46 40"/>
+      <path class="axis" d="M46 40 l-5 9 M46 40 l5 9"/>
+      <text class="lbl" x="30" y="170" transform="rotate(-90 30 170)" text-anchor="middle">Energy</text>
+
+      <g>
+        <circle class="lobe-pos" cx="130" cy="70" r="22"/>
+        <circle class="lobe-neg" cx="200" cy="70" r="22"/>
+        <circle class="lobe-pos" cx="270" cy="70" r="22"/>
+        <circle class="lobe-neg" cx="340" cy="70" r="22"/>
+        <circle class="lobe-pos" cx="410" cy="70" r="22"/>
+        <circle class="lobe-neg" cx="480" cy="70" r="22"/>
+        <path class="node" d="M165 40 V100 M235 40 V100 M305 40 V100 M375 40 V100 M445 40 V100"/>
+        <text class="lbl-strong" x="560" y="66">k = &#960;/a</text>
+        <text class="lbl" x="560" y="84">every overlap out of phase &#8212; 5 nodes</text>
+      </g>
+
+      <g>
+        <circle class="lobe-pos" cx="130" cy="180" r="22"/>
+        <circle class="lobe-pos" cx="200" cy="180" r="22"/>
+        <circle class="lobe-neg" cx="270" cy="180" r="22"/>
+        <circle class="lobe-neg" cx="340" cy="180" r="22"/>
+        <circle class="lobe-pos" cx="410" cy="180" r="22"/>
+        <circle class="lobe-pos" cx="480" cy="180" r="22"/>
+        <path class="node" d="M235 150 V210 M375 150 V210"/>
+        <text class="lbl-strong" x="560" y="176">intermediate k</text>
+        <text class="lbl" x="560" y="194">2 nodes</text>
+      </g>
+
+      <g>
+        <circle class="lobe-pos" cx="130" cy="290" r="22"/>
+        <circle class="lobe-pos" cx="200" cy="290" r="22"/>
+        <circle class="lobe-pos" cx="270" cy="290" r="22"/>
+        <circle class="lobe-pos" cx="340" cy="290" r="22"/>
+        <circle class="lobe-pos" cx="410" cy="290" r="22"/>
+        <circle class="lobe-pos" cx="480" cy="290" r="22"/>
+        <text class="lbl-strong" x="560" y="286">k = 0</text>
+        <text class="lbl" x="560" y="304">every overlap in phase &#8212; no nodes</text>
+      </g>
+    </svg>
+  </figure>
+
+  <p>This idea goes all the way to the solid state where we have essentially infinite combinations of orbitals. However, rather than talking about individual combinations, we instead have continuous energy 'bands' which are parameterised by a k-point that indexes the combination. Higher k-point value imply more nodes. The energy thus becomes a function of this k-point. Fortunately, the energy typically varies slowly with the k-point value (for organic materials) and hence we can get accurate energies by evaluating a small number of k-points. The commonly reported 'band gap' is the energy between the highest occupied and lowest unoccupied bands when we fill the bands with the available electrons (from the atomic orbitals).</p>
+
+  <figure>
+    <svg viewBox="0 0 900 340" role="img" aria-label="Band structure showing an occupied band, an empty band, and the band gap between them as a function of k">
+      <path class="axis" d="M90 300 L90 30"/>
+      <path class="axis" d="M90 300 L820 300"/>
+      <path class="axis" d="M90 30 l-5 9 M90 30 l5 9"/>
+      <text class="lbl" x="70" y="165" transform="rotate(-90 70 165)" text-anchor="middle">Energy</text>
+      <text class="lbl-strong" x="90" y="326" text-anchor="middle">k = 0</text>
+      <text class="lbl-strong" x="640" y="326" text-anchor="middle">k = &#960;/a</text>
+      <path class="hair" d="M640 300 V30"/>
+
+      <path class="curve-pos" d="M90 250 C 230 250, 300 212, 380 196 C 460 180, 560 172, 640 170"/>
+      <path class="fill-pos" d="M90 250 C 230 250, 300 212, 380 196 C 460 180, 560 172, 640 170 L640 300 L90 300 Z"/>
+      <text class="lbl lbl-pos" x="360" y="240" style="font-weight:600">highest occupied band</text>
+
+      <path d="M90 68 C 230 68, 300 82, 380 92 C 460 102, 560 108, 640 110" fill="none" stroke="var(--ink-soft)" stroke-width="2" stroke-dasharray="6 4"/>
+      <text class="lbl" x="360" y="62" style="font-weight:600">lowest unoccupied band</text>
+
+      <path class="arrow" d="M700 110 L700 170" stroke="var(--neg)"/>
+      <path class="arrow" d="M700 110 l-4 9 M700 110 l4 9 M700 170 l-4 -9 M700 170 l4 -9" stroke="var(--neg)"/>
+      <text class="lbl lbl-neg" x="712" y="145" style="font-weight:600">band gap</text>
+
+      <g fill="var(--ink)">
+        <circle cx="90" cy="250" r="4"/><circle cx="273" cy="222" r="4"/><circle cx="457" cy="181" r="4"/><circle cx="640" cy="170" r="4"/>
+      </g>
+      <text class="lbl" x="300" y="288" text-anchor="middle">a handful of sampled k-points is enough when the band is this flat</text>
+    </svg>
+  </figure>
+
+  <p>Note that this is referring to the periodicity of the electronic structure. A related concept is the motion of atoms.</p>
+
+  <p>We know that atoms cannot be at rest and so must be in constant motion, this is the zero-point energy. These motions can, similar to the electronic orbitals, be in-phase or out-of-phase with neighbouring atoms. Therefore, applying the same idea we end up with phonon bands (also called dispersion), which describe the energy of the atomic motions in solids and is also parameterised by a k-value, though it is typically denoted q.</p>
+
+  <figure>
+    <svg viewBox="0 0 900 330" role="img" aria-label="Neighbouring atoms displacing in phase and out of phase, and the resulting phonon dispersion with acoustic and optical branches">
+      <g>
+        <text class="lbl-strong" x="60" y="34">in phase</text>
+        <g fill="var(--ink)">
+          <circle cx="70" cy="80" r="10"/><circle cx="140" cy="80" r="10"/><circle cx="210" cy="80" r="10"/><circle cx="280" cy="80" r="10"/><circle cx="350" cy="80" r="10"/>
+        </g>
+        <path class="arrow" d="M70 100 L70 124 M140 100 L140 124 M210 100 L210 124 M280 100 L280 124 M350 100 L350 124" stroke="var(--pos)"/>
+        <path class="arrow" d="M70 124 l-4 -8 M70 124 l4 -8 M140 124 l-4 -8 M140 124 l4 -8 M210 124 l-4 -8 M210 124 l4 -8 M280 124 l-4 -8 M280 124 l4 -8 M350 124 l-4 -8 M350 124 l4 -8" stroke="var(--pos)"/>
+        <text class="lbl" x="60" y="152">neighbours move together &#8212; low energy</text>
+      </g>
+      <g>
+        <text class="lbl-strong" x="60" y="212">out of phase</text>
+        <g fill="var(--ink)">
+          <circle cx="70" cy="258" r="10"/><circle cx="140" cy="258" r="10"/><circle cx="210" cy="258" r="10"/><circle cx="280" cy="258" r="10"/><circle cx="350" cy="258" r="10"/>
+        </g>
+        <path class="arrow" d="M70 278 L70 302 M210 278 L210 302 M350 278 L350 302" stroke="var(--neg)"/>
+        <path class="arrow" d="M70 302 l-4 -8 M70 302 l4 -8 M210 302 l-4 -8 M210 302 l4 -8 M350 302 l-4 -8 M350 302 l4 -8" stroke="var(--neg)"/>
+        <path class="arrow" d="M140 238 L140 214 M280 238 L280 214" stroke="var(--neg)"/>
+        <path class="arrow" d="M140 214 l-4 8 M140 214 l4 8 M280 214 l-4 8 M280 214 l4 8" stroke="var(--neg)"/>
+        <text class="lbl" x="60" y="326">neighbours oppose each other &#8212; high energy</text>
+      </g>
+
+      <g>
+        <path class="axis" d="M500 290 L500 30"/>
+        <path class="axis" d="M500 290 L860 290"/>
+        <path class="axis" d="M500 30 l-5 9 M500 30 l5 9"/>
+        <text class="lbl" x="482" y="160" transform="rotate(-90 482 160)" text-anchor="middle">Energy</text>
+        <text class="lbl-strong" x="500" y="316" text-anchor="middle">q = 0</text>
+        <text class="lbl-strong" x="840" y="316" text-anchor="middle">q = &#960;/a</text>
+        <path d="M500 70 C 600 74, 700 82, 840 86" fill="none" stroke="var(--neg)" stroke-width="2"/>
+        <path d="M500 290 C 580 240, 660 176, 840 150" fill="none" stroke="var(--pos)" stroke-width="2"/>
+        <text class="lbl lbl-neg" x="620" y="62" style="font-weight:600">optical branch</text>
+        <text class="lbl lbl-pos" x="612" y="220" style="font-weight:600">acoustic branch</text>
+      </g>
+    </svg>
+  </figure>
+
+  <footer>
+    <p>Computational chemistry &#183; Atomic Orbitals to Band Gaps</p>
+  </footer>
+
+</article>
+</body>
+</html>
